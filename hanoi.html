@@ -4,17 +4,16 @@
   <meta charset="UTF-8">
   <title>Jeu des tours de Hanoï</title>
 
-  <!-- Police Google (facultatif, mais joli) -->
+  <!-- Police Google -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary: #4f46e5;
-      --primary-light: #6366f1;
-      --primary-soft: rgba(99, 102, 241, 0.12);
+      --primary: #6366f1;      /* bleu/violet principal */
+      --primary-soft: #e0e7ff;
+      --accent: #0ea5e9;
       --bg: radial-gradient(circle at top, #eef2ff 0, #e0f2fe 40%, #f9fafb 100%);
-      --card-bg: rgba(255, 255, 255, 0.9);
-      --border-radius-xl: 18px;
+      --card-bg: rgba(255, 255, 255, 0.96);
       --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.18);
     }
 
@@ -36,17 +35,17 @@
 
     .app-wrapper {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1000px;
       padding: 20px;
     }
 
     .app-card {
       background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border-radius: 26px;
-      padding: 24px 26px 28px;
+      backdrop-filter: blur(14px);
+      border-radius: 22px;
+      padding: 20px 22px 22px;
       box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.35);
+      border: 1px solid #e5e7eb;
     }
 
     header {
@@ -54,15 +53,16 @@
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .title-block h1 {
       font-size: 1.7rem;
-      font-weight: 600;
+      font-weight: 700;
+      color: #111827;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .pill {
@@ -82,33 +82,40 @@
 
     .badge-min-moves {
       font-size: 0.8rem;
-      background: rgba(15, 23, 42, 0.04);
+      background: #eff6ff;
       padding: 6px 10px;
       border-radius: 999px;
-      border: 1px dashed rgba(148, 163, 184, 0.7);
-      color: #4b5563;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* Zone de contrôle */
+    .badge-min-moves::before {
+      content: "🎯";
+      font-size: 0.9rem;
+    }
+
+    /* Ligne du haut : contrôles + stats */
 
     .top-row {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
-      gap: 18px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
     }
 
     .controls,
     .stats-panel {
-      background: rgba(248, 250, 252, 0.9);
-      border-radius: var(--border-radius-xl);
-      padding: 12px 16px;
-      border: 1px solid rgba(226, 232, 240, 0.9);
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 10px 14px;
+      border: 1px solid #e5e7eb;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
     }
 
     .controls-left,
@@ -121,7 +128,7 @@
 
     .controls label {
       font-weight: 500;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       color: #4b5563;
     }
 
@@ -130,17 +137,17 @@
       padding: 6px 8px;
       font-size: 0.9rem;
       border-radius: 999px;
-      border: 1px solid #cbd5f5;
+      border: 1px solid #c7d2fe;
       outline: none;
       text-align: center;
-      transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-      background: #fff;
+      background: white;
+      color: #111827;
+      transition: 0.15s ease;
     }
 
     #numDisks:focus {
-      border-color: var(--primary-light);
-      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.28);
-      transform: translateY(-1px);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25);
     }
 
     button {
@@ -148,26 +155,26 @@
       border-radius: 999px;
       border: none;
       cursor: pointer;
-      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      background: linear-gradient(135deg, var(--primary), var(--accent));
       color: white;
-      font-weight: 500;
+      font-weight: 600;
       font-size: 0.9rem;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      box-shadow: 0 10px 22px rgba(79, 70, 229, 0.35);
-      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);
+      transition: 0.12s ease;
     }
 
     button:hover {
       transform: translateY(-1px);
       filter: brightness(1.04);
-      box-shadow: 0 14px 26px rgba(79, 70, 229, 0.4);
+      box-shadow: 0 14px 26px rgba(37, 99, 235, 0.4);
     }
 
     button:active {
       transform: translateY(0px) scale(0.98);
-      box-shadow: 0 7px 14px rgba(79, 70, 229, 0.3);
+      box-shadow: 0 7px 14px rgba(37, 99, 235, 0.3);
     }
 
     button span.icon {
@@ -176,18 +183,17 @@
 
     .stats-row {
       display: flex;
-      gap: 14px;
+      gap: 10px;
       align-items: center;
       flex-wrap: wrap;
       font-size: 0.85rem;
-      color: #4b5563;
     }
 
     .stat-chip {
       padding: 6px 10px;
       border-radius: 999px;
-      background: white;
-      border: 1px solid rgba(203, 213, 225, 0.9);
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -195,22 +201,22 @@
 
     .stat-label {
       font-weight: 500;
-      color: #64748b;
+      color: #6b7280;
     }
 
     .stat-value {
-      font-weight: 600;
+      font-weight: 700;
       color: #111827;
     }
 
-    /* Zone message */
+    /* Message */
 
     .game-info {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       padding: 8px 12px;
-      border-radius: 12px;
-      background: rgba(239, 246, 255, 0.95);
-      border: 1px solid rgba(191, 219, 254, 0.9);
+      border-radius: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
       font-size: 0.85rem;
       display: flex;
       align-items: center;
@@ -231,115 +237,88 @@
     /* Zone de jeu */
 
     .game-surface {
-      margin-top: 8px;
-      padding: 18px 14px 18px;
-      border-radius: 20px;
-      background: radial-gradient(circle at top, #e0f2fe 0, #eff6ff 45%, #e5e7eb 100%);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .game-surface::before {
-      /* léger halo en haut */
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.8), transparent 55%);
-      opacity: 0.8;
-      pointer-events: none;
+      margin-top: 6px;
+      padding: 12px 10px 16px;
+      border-radius: 16px;
+      background: #e5e7eb;
+      border: 1px solid #d1d5db;
     }
 
     .towers {
-      position: relative;
       display: flex;
       justify-content: space-evenly;
       align-items: flex-end;
-      max-width: 900px;
+      max-width: 860px;
       margin: 0 auto;
-      gap: 28px;
-      padding: 18px 10px 10px;
+      gap: 24px;
+      padding: 16px 10px 6px;
     }
 
     .tower {
       flex: 1;
-      max-width: 250px;
-      height: 260px;
-      border-radius: 20px;
+      max-width: 220px;
+      height: 250px;
       position: relative;
       display: flex;
       justify-content: center;
       align-items: flex-end;
       cursor: pointer;
-      padding-bottom: 32px;
-      transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
-      border: 1px solid transparent;
+      padding-bottom: 30px;
+      transition: transform 0.12s ease, filter 0.12s ease;
     }
 
     .tower:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 25px rgba(148, 163, 184, 0.6);
-      background: rgba(255, 255, 255, 0.7);
-      border-color: rgba(148, 163, 184, 0.8);
+      filter: brightness(1.02);
     }
 
+    /* Juste poteau + base, sans “carré” autour */
     .tower::before {
-      /* poteau vertical */
       content: "";
       position: absolute;
-      bottom: 32px;
-      width: 12px;
-      height: 195px;
-      background: linear-gradient(to bottom, #e5e7eb, #9ca3af);
+      bottom: 30px;
+      width: 10px;
+      height: 185px;
+      background: linear-gradient(to bottom, #f3f4f6, #9ca3af);
       border-radius: 999px;
-      box-shadow: inset 0 0 4px rgba(15, 23, 42, 0.4);
+      box-shadow: inset 0 0 3px rgba(15, 23, 42, 0.45);
     }
 
     .tower::after {
-      /* base */
       content: "";
       position: absolute;
       bottom: 22px;
-      width: 75%;
-      height: 12px;
-      background: linear-gradient(to right, #6b7280, #374151);
+      width: 70%;
+      height: 10px;
+      background: #4b5563;
       border-radius: 999px;
-      box-shadow: 0 4px 6px rgba(15, 23, 42, 0.6);
-    }
-
-    .tower.selected {
-      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.9), 0 14px 30px rgba(37, 99, 235, 0.35);
-      transform: translateY(-4px);
-      background: rgba(219, 234, 254, 0.9);
-      border-color: rgba(59, 130, 246, 0.9);
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.6);
     }
 
     .tower.selected::before {
-      box-shadow: 0 0 16px rgba(59, 130, 246, 0.9);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
     }
 
     .tower-label {
       position: absolute;
-      bottom: 2px;
+      bottom: 0;
       font-weight: 600;
-      color: #0f172a;
-      font-size: 0.85rem;
-      padding: 2px 9px;
+      font-size: 0.8rem;
+      padding: 2px 8px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.88);
+      background: #0f172a;
       color: white;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.03em;
     }
 
     .tower-label span {
-      opacity: 0.65;
-      font-weight: 400;
+      opacity: 0.6;
       margin-right: 4px;
     }
 
     .disks {
       position: absolute;
-      bottom: 34px;
+      bottom: 32px;
       width: 100%;
       display: flex;
       flex-direction: column-reverse;
@@ -356,44 +335,31 @@
       line-height: 22px;
       font-size: 12px;
       color: #f9fafb;
-      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.35);
       pointer-events: auto;
       position: relative;
-      transition: transform 0.16s ease, box-shadow 0.16s ease;
-    }
-
-    .disk::after {
-      /* effet “brillance” */
-      content: "";
-      position: absolute;
-      inset: 3px 25%;
-      border-radius: 999px;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45), transparent);
-      opacity: 0.9;
-      pointer-events: none;
+      border: 1px solid rgba(243, 244, 246, 0.9);
+      box-shadow: 0 3px 6px rgba(15, 23, 42, 0.25);
+      transition: transform 0.12s ease;
     }
 
     .tower.selected .disk:last-child {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 18px rgba(37, 99, 235, 0.6);
+      transform: translateY(-2px);
     }
 
-    /* Palette de couleurs des disques */
-    .disk.size-1 { background: #f97373; }
-    .disk.size-2 { background: #fb923c; }
-    .disk.size-3 { background: #facc15; color: #111827; }
-    .disk.size-4 { background: #22c55e; }
-    .disk.size-5 { background: #0ea5e9; }
-    .disk.size-6 { background: #6366f1; }
+    /* Palette de disques plus unie (bleu / violet / cyan) */
+    .disk.size-1 { background: #6366f1; }
+    .disk.size-2 { background: #4f46e5; }
+    .disk.size-3 { background: #3b82f6; }
+    .disk.size-4 { background: #0ea5e9; }
+    .disk.size-5 { background: #22c55e; }
+    .disk.size-6 { background: #10b981; }
     .disk.size-7 { background: #8b5cf6; }
-    .disk.size-8 { background: #ec4899; }
+    .disk.size-8 { background: #7c3aed; }
     .disk.size-9 { background: #14b8a6; }
-    .disk.size-10 { background: #ef4444; }
-
-    /* Bas de page / mini aide */
+    .disk.size-10 { background: #1d4ed8; }
 
     .footer-hint {
-      margin-top: 10px;
+      margin-top: 8px;
       font-size: 0.75rem;
       color: #6b7280;
       display: flex;
@@ -404,8 +370,8 @@
     .key-badge {
       padding: 2px 6px;
       border-radius: 5px;
-      border: 1px solid rgba(148, 163, 184, 0.8);
-      background: rgba(248, 250, 252, 0.9);
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
       font-size: 0.7rem;
       font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
@@ -414,11 +380,9 @@
       .top-row {
         grid-template-columns: minmax(0, 1fr);
       }
-
       .towers {
         gap: 14px;
       }
-
       .tower {
         max-width: none;
       }
@@ -426,16 +390,11 @@
 
     @media (max-width: 600px) {
       .app-card {
-        padding: 18px 16px 20px;
+        padding: 16px 14px 18px;
       }
-
       header {
         flex-direction: column;
         align-items: flex-start;
-      }
-
-      .game-surface {
-        padding-inline: 6px;
       }
     }
   </style>
@@ -447,14 +406,14 @@
         <div class="title-block">
           <h1>
             Tours de Hanoï
-            <span class="pill">Jeu interactif</span>
+            <span class="pill">Interface simple</span>
           </h1>
           <div class="subtitle">
             Clique sur une tour de départ puis sur une tour d’arrivée pour déplacer les anneaux.
           </div>
         </div>
         <div class="badge-min-moves">
-          Nombre minimal de coups : <span id="minMoves">? </span>
+          Minimal : <span id="minMoves">?</span> coups
         </div>
       </header>
 
@@ -466,8 +425,8 @@
           </div>
           <div class="controls-right">
             <button id="startBtn">
-              <span class="icon">▶️</span>
-              <span>Démarrer une nouvelle partie</span>
+              <span class="icon">🎮</span>
+              <span>Nouvelle partie</span>
             </button>
           </div>
         </div>
@@ -508,8 +467,9 @@
       </div>
 
       <div class="footer-hint">
-        💡 Astuce : essaie d’atteindre l’objectif en le moins de coups possible.
-        <span class="key-badge">2ⁿ − 1</span> coups pour <span class="key-badge">n</span> anneaux.
+        💡 Astuce : le nombre minimal de coups est
+        <span class="key-badge">2ⁿ − 1</span>
+        pour <span class="key-badge">n</span> anneaux.
       </div>
     </div>
   </div>
@@ -523,10 +483,10 @@
     const messageDiv = document.getElementById('message');
     const towerElements = document.querySelectorAll('.tower');
 
-    let towers = [[], [], []];   // chaque tour contient un tableau d’anneaux (nombre = taille)
+    let towers = [[], [], []];
     let numDisks = 3;
     let moveCount = 0;
-    let selectedFrom = null;     // index de la tour sélectionnée pour le déplacement
+    let selectedFrom = null;
 
     function computeMinMoves(n) {
       return Math.pow(2, n) - 1;
@@ -558,16 +518,15 @@
     function renderTowers() {
       towerElements.forEach((towerEl, index) => {
         const disksContainer = towerEl.querySelector('.disks');
-        disksContainer.innerHTML = ''; // on efface les anciens disques
+        disksContainer.innerHTML = '';
 
         const tower = towers[index];
         tower.forEach(size => {
           const diskEl = document.createElement('div');
           diskEl.classList.add('disk', `size-${size}`);
 
-          // largeur proportionnelle à la taille
-          const minWidth = 35;   // en %
-          const maxWidth = 92;   // en %
+          const minWidth = 35;
+          const maxWidth = 92;
           const ratio = (size - 1) / Math.max(1, (numDisks - 1));
           const width = minWidth + (maxWidth - minWidth) * ratio;
           diskEl.style.width = width + '%';
@@ -587,7 +546,6 @@
       const index = parseInt(towerEl.dataset.index, 10);
       const tower = towers[index];
 
-      // 1er clic : choix de la tour de départ
       if (selectedFrom === null) {
         if (tower.length === 0) {
           messageDiv.textContent = "Cette tour est vide, choisis une autre tour comme départ.";
@@ -598,12 +556,10 @@
         towerEl.classList.add('selected');
         messageDiv.textContent = "Choisis maintenant la tour d’arrivée.";
       } else {
-        // 2e clic : tentative de déplacement
         const from = selectedFrom;
         const to = index;
 
         if (from === to) {
-          // annule la sélection
           selectedFrom = null;
           clearSelection();
           messageDiv.textContent = "Sélection annulée.";
@@ -623,7 +579,6 @@
         const diskToMove = fromTower[fromTower.length - 1];
         const topDest = toTower[toTower.length - 1];
 
-        // règle : on ne peut poser qu'un plus petit disque sur un plus grand
         if (topDest !== undefined && topDest < diskToMove) {
           messageDiv.textContent = "Coup interdit : tu ne peux pas poser un grand disque sur un plus petit.";
           selectedFrom = null;
@@ -631,7 +586,6 @@
           return;
         }
 
-        // déplacement valide
         fromTower.pop();
         toTower.push(diskToMove);
 
@@ -650,7 +604,7 @@
       if (towers[2].length === numDisks) {
         const minMoves = computeMinMoves(numDisks);
         if (moveCount === minMoves) {
-          messageDiv.textContent = "🔥 Parfait ! Tu as réussi en " + moveCount + " coups, le minimum possible !";
+          messageDiv.textContent = "🌟 Parfait ! Tu as réussi en " + moveCount + " coups, le minimum possible !";
         } else {
           messageDiv.textContent = "Bravo ! Tu as terminé en " + moveCount +
             " coups (minimum possible : " + minMoves + ").";
@@ -658,11 +612,9 @@
       }
     }
 
-    // Événements
     startBtn.addEventListener('click', startGame);
     towerElements.forEach(t => t.addEventListener('click', onTowerClick));
 
-    // Initialisation au chargement
     startGame();
   </script>
 </body>
