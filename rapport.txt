@@ -1,0 +1,7 @@
+J'utilise chat gpt durant ce tp.
+Lors de l'étape 1 : j'ai commencé par décrire le jeu due l'on attend et j'ai ensuite demandé au LLM de me faire l'étape 1:
+
+On veut recréer un jeu des tour de hanoï, génère une page web simple comportant 1 bouton démarrer, une zone affichant
+les trois tours et un champ permettant de choisir le  nombre d'anneau au début de partie.
+
+Le code généré est dans hanoi.html

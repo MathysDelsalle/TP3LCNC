@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeu des tours de Hanoï</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .controls label {
+      font-weight: bold;
+    }
+
+    #numDisks {
+      width: 60px;
+      padding: 5px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    .game-info {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    #message {
+      margin-top: 5px;
+      min-height: 1.2em;
+      color: #555;
+    }
+
+    .towers {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      max-width: 800px;
+      margin: 0 auto;
+      gap: 20px;
+    }
+
+    .tower {
+      flex: 1;
+      max-width: 220px;
+      height: 260px;
+      border-bottom: 4px solid #444;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .tower::before {
+      /* poteau vertical */
+      content: "";
+      position: absolute;
+      bottom: 0;
+      width: 10px;
+      height: 220px;
+      background: #777;
+      border-radius: 5px;
+    }
+
+    .tower.selected::before {
+      box-shadow: 0 0 10px rgba(0, 123, 255, 0.9);
+    }
+
+    .tower-label {
+      position: absolute;
+      bottom: -24px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .disks {
+      position: absolute;
+      bottom: 4px;
+      width: 100%;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .disk {
+      height: 20px;
+      margin-top: 4px;
+      border-radius: 10px;
+      text-align: center;
+      line-height: 20px;
+      font-size: 12px;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      pointer-events: auto; /* pour cliquer si besoin, mais on gère sur la tour */
+    }
+
+    /* Quelques couleurs de disques différentes */
+    .disk.size-1 { background: #ff6b6b; }
+    .disk.size-2 { background: #f0ad4e; }
+    .disk.size-3 { background: #5bc0de; }
+    .disk.size-4 { background: #5cb85c; }
+    .disk.size-5 { background: #d9534f; }
+    .disk.size-6 { background: #9b59b6; }
+    .disk.size-7 { background: #e67e22; }
+    .disk.size-8 { background: #3498db; }
+    .disk.size-9 { background: #1abc9c; }
+    .disk.size-10 { background: #2ecc71; }
+
+  </style>
+</head>
+<body>
+  <h1>Jeu des tours de Hanoï</h1>
+
+  <div class="controls">
+    <label for="numDisks">Nombre d’anneaux :</label>
+    <input type="number" id="numDisks" min="1" max="10" value="3">
+    <button id="startBtn">Démarrer la partie</button>
+  </div>
+
+  <div class="game-info">
+    <div>Nombre de coups : <span id="moveCount">0</span></div>
+    <div id="message"></div>
+  </div>
+
+  <div class="towers">
+    <div class="tower" data-index="0">
+      <div class="disks"></div>
+      <div class="tower-label">Tour 1</div>
+    </div>
+    <div class="tower" data-index="1">
+      <div class="disks"></div>
+      <div class="tower-label">Tour 2</div>
+    </div>
+    <div class="tower" data-index="2">
+      <div class="disks"></div>
+      <div class="tower-label">Tour 3</div>
+    </div>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const numDisksInput = document.getElementById('numDisks');
+    const moveCountSpan = document.getElementById('moveCount');
+    const messageDiv = document.getElementById('message');
+    const towerElements = document.querySelectorAll('.tower');
+
+    let towers = [[], [], []];   // chaque tour contient un tableau d’anneaux (nombre = taille)
+    let numDisks = 3;
+    let moveCount = 0;
+    let selectedFrom = null;     // index de la tour sélectionnée pour le déplacement
+
+    function startGame() {
+      numDisks = parseInt(numDisksInput.value, 10);
+      if (isNaN(numDisks) || numDisks < 1) numDisks = 1;
+      if (numDisks > 10) numDisks = 10;
+      numDisksInput.value = numDisks;
+
+      // initialisation des tours
+      towers = [[], [], []];
+      for (let size = numDisks; size >= 1; size--) {
+        towers[0].push(size);
+      }
+
+      moveCount = 0;
+      selectedFrom = null;
+      moveCountSpan.textContent = moveCount;
+      messageDiv.textContent = "Clique d'abord sur une tour de départ, puis sur une tour d'arrivée.";
+      clearSelection();
+      renderTowers();
+    }
+
+    function renderTowers() {
+      towerElements.forEach((towerEl, index) => {
+        const disksContainer = towerEl.querySelector('.disks');
+        disksContainer.innerHTML = ''; // on efface les anciens disques
+
+        const tower = towers[index];
+        tower.forEach(size => {
+          const diskEl = document.createElement('div');
+          diskEl.classList.add('disk', `size-${size}`);
+
+          // largeur proportionnelle à la taille
+          const minWidth = 40;   // en %
+          const maxWidth = 90;   // en %
+          const ratio = (size - 1) / Math.max(1, (numDisks - 1));
+          const width = minWidth + (maxWidth - minWidth) * ratio;
+          diskEl.style.width = width + '%';
+
+          diskEl.textContent = size;
+          disksContainer.appendChild(diskEl);
+        });
+      });
+    }
+
+    function clearSelection() {
+      towerElements.forEach(t => t.classList.remove('selected'));
+    }
+
+    function onTowerClick(event) {
+      const towerEl = event.currentTarget;
+      const index = parseInt(towerEl.dataset.index, 10);
+      const tower = towers[index];
+
+      // 1er clic : choix de la tour de départ
+      if (selectedFrom === null) {
+        if (tower.length === 0) {
+          messageDiv.textContent = "Cette tour est vide, choisis une autre tour comme départ.";
+          return;
+        }
+        selectedFrom = index;
+        clearSelection();
+        towerEl.classList.add('selected');
+        messageDiv.textContent = "Choisis maintenant la tour d'arrivée.";
+      } else {
+        // 2e clic : tentative de déplacement
+        const from = selectedFrom;
+        const to = index;
+
+        if (from === to) {
+          // annule la sélection
+          selectedFrom = null;
+          clearSelection();
+          messageDiv.textContent = "Sélection annulée.";
+          return;
+        }
+
+        const fromTower = towers[from];
+        const toTower = towers[to];
+
+        if (fromTower.length === 0) {
+          messageDiv.textContent = "La tour de départ est vide.";
+          selectedFrom = null;
+          clearSelection();
+          return;
+        }
+
+        const diskToMove = fromTower[fromTower.length - 1];
+        const topDest = toTower[toTower.length - 1];
+
+        // règle : on ne peut poser qu'un plus petit disque sur un plus grand
+        if (topDest !== undefined && topDest < diskToMove) {
+          messageDiv.textContent = "Coup interdit : on ne peut pas poser un grand disque sur un plus petit.";
+          selectedFrom = null;
+          clearSelection();
+          return;
+        }
+
+        // déplacement valide
+        fromTower.pop();
+        toTower.push(diskToMove);
+
+        moveCount++;
+        moveCountSpan.textContent = moveCount;
+        messageDiv.textContent = "Coup joué. À toi de continuer !";
+
+        selectedFrom = null;
+        clearSelection();
+        renderTowers();
+        checkWin();
+      }
+    }
+
+    function checkWin() {
+      // victoire si tous les disques sont sur la 3e tour
+      if (towers[2].length === numDisks) {
+        messageDiv.textContent = "Bravo ! Tu as gagné en " + moveCount + " coups.";
+      }
+    }
+
+    // Événements
+    startBtn.addEventListener('click', startGame);
+    towerElements.forEach(t => t.addEventListener('click', onTowerClick));
+
+    // Initialisation au chargement
+    startGame();
+  </script>
+</body>
+</html>
