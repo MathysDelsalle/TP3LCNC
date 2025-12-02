@@ -1,71 +1,63 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tours de Hanoï</title>
-  <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tours de Hanoï</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="app">
-    <header class="app-header">
-      <h1>Tours de Hanoï</h1>
-      <p>Déplace tous les disques d&#39;une tour à une autre en un minimum de coups.</p>
-    </header>
-
-    <section class="controls">
-      <div class="controls-left">
-        <label for="diskCount">
-          Nombre d&#39;anneaux :
-          <input
-            type="number"
-            id="diskCount"
-            min="3"
-            max="8"
-            value="4"
-          />
-        </label>
-        <button id="startBtn" class="btn primary">Démarrer</button>
-        <button id="autoDemoBtn" class="btn">Démo auto</button>
-        <button id="resetBtn" class="btn subtle">Reset</button>
-      </div>
-
-      <div class="controls-right">
-        <button id="themeToggle" class="btn secondary">Mode sombre</button>
-      </div>
-    </section>
-
-    <section class="scoreboard">
-      <div>Coups : <span id="moveCount">0</span></div>
-      <div>Coups optimaux : <span id="optimalMoves">0</span></div>
-      <div>Score : <span id="score">0</span></div>
-      <div id="scoreMessage" class="score-message"></div>
-    </section>
-
-    <section class="game-area">
-      <div class="towers">
-        <div class="tower" data-index="0">
-          <div class="peg"></div>
-          <div class="base"></div>
+    <div class="container">
+        <h1>Tours de Hanoï</h1>
+        
+        <div class="controls">
+            <div class="input-group">
+                <label for="diskCount">Nombre de disques:</label>
+                <input type="number" id="diskCount" min="3" max="8" value="3">
+            </div>
+            
+            <div class="button-group">
+                <button id="startBtn" class="btn btn-primary">Démarrer</button>
+                <button id="autoBtn" class="btn btn-secondary">Démo Auto</button>
+                <button id="resetBtn" class="btn btn-danger">Reset</button>
+                <button id="themeBtn" class="btn btn-theme">🌙</button>
+            </div>
         </div>
-        <div class="tower" data-index="1">
-          <div class="peg"></div>
-          <div class="base"></div>
-        </div>
-        <div class="tower" data-index="2">
-          <div class="peg"></div>
-          <div class="base"></div>
-        </div>
-      </div>
-      <p class="hint">
-        Cliquez sur une tour pour sélectionner le disque du haut, puis sur une autre pour le déposer.
-      </p>
-    </section>
 
-    <footer class="app-footer">
-      <small>Mode manuel &amp; démo automatique • Tours de Hanoï</small>
-    </footer>
-  </main>
+        <div class="scoreboard">
+            <div class="score-item">
+                <span>Coups: </span>
+                <span id="moves">0</span>
+            </div>
+            <div class="score-item">
+                <span>Score: </span>
+                <span id="score">0</span>
+            </div>
+            <div class="score-item">
+                <span>Coups optimaux: </span>
+                <span id="optimal">0</span>
+            </div>
+        </div>
 
-  <script src="script.js" defer></script>
+        <div class="game-area">
+            <div class="tower" data-tower="0">
+                <div class="tower-disks" id="tower0"></div>
+                <div class="tower-base"></div>
+                <div class="tower-label">Tour A</div>
+            </div>
+            <div class="tower" data-tower="1">
+                <div class="tower-disks" id="tower1"></div>
+                <div class="tower-base"></div>
+                <div class="tower-label">Tour B</div>
+            </div>
+            <div class="tower" data-tower="2">
+                <div class="tower-disks" id="tower2"></div>
+                <div class="tower-base"></div>
+                <div class="tower-label">Tour C</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

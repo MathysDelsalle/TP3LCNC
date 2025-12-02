@@ -1,343 +1,321 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const body = document.documentElement;
+// État du jeu
+let gameState = {
+    towers: [[], [], []],
+    diskCount: 3,
+    moves: 0,
+    selectedDisk: null,
+    selectedTower: null,
+    gameStarted: false,
+    autoMode: false,
+    animating: false
+};
 
-  const towersEls = Array.from(document.querySelectorAll(".tower"));
-  const diskCountInput = document.getElementById("diskCount");
-  const startBtn = document.getElementById("startBtn");
-  const autoDemoBtn = document.getElementById("autoDemoBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const themeToggleBtn = document.getElementById("themeToggle");
+// Éléments DOM
+const startBtn = document.getElementById('startBtn');
+const autoBtn = document.getElementById('autoBtn');
+const resetBtn = document.getElementById('resetBtn');
+const themeBtn = document.getElementById('themeBtn');
+const diskCountInput = document.getElementById('diskCount');
+const movesDisplay = document.getElementById('moves');
+const scoreDisplay = document.getElementById('score');
+const optimalDisplay = document.getElementById('optimal');
 
-  const moveCountEl = document.getElementById("moveCount");
-  const optimalMovesEl = document.getElementById("optimalMoves");
-  const scoreEl = document.getElementById("score");
-  const scoreMessageEl = document.getElementById("scoreMessage");
-
-  const ANIMATION_DURATION = 380; // ms
-  const DISK_HEIGHT = 22;
-  const DISK_GAP = 4;
-  const BASE_BOTTOM_OFFSET = 20;
-
-  let numDisks = parseInt(diskCountInput.value, 10) || 4;
-  let towers = [[], [], []]; // chaque tour est un tableau de tailles de disques (1 = petit)
-  const diskElements = new Map(); // taille -> élément DOM
-
-  let moveCount = 0;
-  let isAutoPlaying = false;
-  let cancelAuto = false;
-  let selectedTowerIndex = null;
-
-  // Palette de couleurs pour les disques
-  const diskColors = [
-    "#f97373",
-    "#fb923c",
-    "#facc15",
-    "#4ade80",
-    "#2dd4bf",
-    "#38bdf8",
-    "#6366f1",
-    "#a855f7",
-  ];
-
-  /* ---------- Thème (clair / sombre) ---------- */
-  function applyTheme(theme) {
-    body.setAttribute("data-theme", theme);
-    themeToggleBtn.textContent =
-      theme === "dark" ? "Mode clair" : "Mode sombre";
-    try {
-      localStorage.setItem("hanoi-theme", theme);
-    } catch {
-      /* silencieux */
-    }
-  }
-
-  (function initTheme() {
-    let stored;
-    try {
-      stored = localStorage.getItem("hanoi-theme");
-    } catch {
-      stored = null;
-    }
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial = stored || (prefersDark ? "dark" : "light");
-    applyTheme(initial);
-  })();
-
-  themeToggleBtn.addEventListener("click", () => {
-    const current = body.getAttribute("data-theme") || "light";
-    applyTheme(current === "light" ? "dark" : "light");
-  });
-
-  /* ---------- Utilitaires ---------- */
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
-  }
-
-  function optimalMoves(n) {
-    return Math.pow(2, n) - 1;
-  }
-
-  function updateScoreboard() {
-    const optimal = optimalMoves(numDisks);
-    moveCountEl.textContent = moveCount;
-    optimalMovesEl.textContent = optimal;
-
-    let score = 0;
-    let msg = "";
-    if (moveCount > 0) {
-      score = Math.max(0, Math.round((optimal / moveCount) * 1000));
-      if (moveCount === optimal) {
-        msg = "Parfait ! Vous avez atteint le minimum théorique 🎉";
-      } else if (moveCount <= optimal * 1.5) {
-        msg = "Très bien joué, vous êtes proche de l&#39;optimal 👏";
-      } else {
-        msg = "Essayez de réduire encore vos coups pour plus de points 😉";
-      }
-    }
-    scoreEl.textContent = score;
-    scoreMessageEl.innerHTML = msg;
-  }
-
-  function computeBottomPosition(stackIndex) {
-    // 0 = disque le plus bas
-    return BASE_BOTTOM_OFFSET + 14 + stackIndex * (DISK_HEIGHT + DISK_GAP);
-  }
-
-  function layoutAllDisks(withTransition = false) {
-    towers.forEach((towerArr, towerIndex) => {
-      towerArr.forEach((size, i) => {
-        const diskEl = diskElements.get(size);
-        if (!diskEl) return;
-        diskEl.style.transition = withTransition ? "" : "none";
-        diskEl.style.bottom = `${computeBottomPosition(i)}px`;
-      });
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    startBtn.addEventListener('click', startGame);
+    autoBtn.addEventListener('click', startAutoDemo);
+    resetBtn.addEventListener('click', resetGame);
+    themeBtn.addEventListener('click', toggleTheme);
+    
+    document.querySelectorAll('.tower').forEach((tower, index) => {
+        tower.addEventListener('click', () => handleTowerClick(index));
     });
-  }
-
-  /* ---------- Initialisation / Reset ---------- */
-  function clearDisksDom() {
-    towersEls.forEach((towerEl) => {
-      towerEl.querySelectorAll(".disk").forEach((d) => d.remove());
-    });
-    diskElements.clear();
-  }
-
-  function createDisk(size, towerIndex, stackIndex) {
-    const diskEl = document.createElement("div");
-    diskEl.classList.add("disk");
-    const minWidth = 60;
-    const maxWidth = 160;
-    const ratio = (size - 1) / Math.max(1, numDisks - 1);
-    const width = minWidth + (maxWidth - minWidth) * ratio;
-
-    diskEl.style.width = `${width}px`;
-    diskEl.style.bottom = `${computeBottomPosition(stackIndex)}px`;
-    diskEl.style.background = diskColors[(size - 1) % diskColors.length];
-    diskEl.style.zIndex = 10 + size; // pour que les plus petits soient au-dessus
-
-    const towerEl = towersEls[towerIndex];
-    towerEl.appendChild(diskEl);
-    diskElements.set(size, diskEl);
-  }
-
-  function resetState(keepDiskCount = true) {
-    if (!keepDiskCount) {
-      numDisks = clamp(
-        parseInt(diskCountInput.value, 10) || numDisks,
-        Number(diskCountInput.min),
-        Number(diskCountInput.max)
-      );
-      diskCountInput.value = numDisks;
-    }
-
-    moveCount = 0;
-    cancelAuto = true;
-    isAutoPlaying = false;
-    selectedTowerIndex = null;
-
-    towers = [[], [], []];
-    clearDisksDom();
-
-    for (let size = numDisks; size >= 1; size--) {
-      towers[0].push(size);
-      createDisk(size, 0, numDisks - size);
-    }
-
-    layoutAllDisks(false);
-    updateScoreboard();
-  }
-
-  function disableControlsDuringAuto(disabled) {
-    towersEls.forEach((tower) =>
-      tower.classList.toggle("disabled", disabled)
-    );
-    startBtn.disabled = disabled;
-    diskCountInput.disabled = disabled;
-    autoDemoBtn.disabled = disabled;
-  }
-
-  /* ---------- Mouvements ---------- */
-  async function moveDisk(fromIndex, toIndex, isUserMove = false) {
-    // validation de base
-    if (fromIndex === toIndex) return false;
-
-    const fromTower = towers[fromIndex];
-    const toTower = towers[toIndex];
-
-    if (!fromTower.length) return false;
-
-    const movingSize = fromTower[fromTower.length - 1];
-    const targetTopSize = toTower[toTower.length - 1];
-
-    if (targetTopSize !== undefined && targetTopSize < movingSize) {
-      const targetTowerEl = towersEls[toIndex];
-      targetTowerEl.classList.add("invalid");
-      setTimeout(() => targetTowerEl.classList.remove("invalid"), 200);
-      return false;
-    }
-
-    fromTower.pop();
-    toTower.push(movingSize);
-
-    const diskEl = diskElements.get(movingSize);
-    if (!diskEl) return false;
-
-    // Animation : téléporté en haut de la tour d'arrivée puis chute fluide
-    const targetTowerEl = towersEls[toIndex];
-    const targetStackIndex = toTower.length - 1;
-    const finalBottom = computeBottomPosition(targetStackIndex);
-
-    // étape : déplacer l'élément dans le DOM et le placer en haut
-    diskEl.classList.remove("selected");
-    diskEl.style.transition = "none";
-    targetTowerEl.appendChild(diskEl);
-    diskEl.style.bottom = `${computeBottomPosition(numDisks + 1)}px`; // haut de la tour
-
-    // forcer le reflow
-    void diskEl.offsetHeight;
-
-    // activer la transition pour la descente
-    diskEl.style.transition = `bottom ${ANIMATION_DURATION}ms ease`;
-    diskEl.style.bottom = `${finalBottom}px`;
-
-    // attendre la fin de l'animation
-    await new Promise((resolve) =>
-      setTimeout(resolve, ANIMATION_DURATION + 20)
-    );
-
-    if (isUserMove) {
-      moveCount++;
-      updateScoreboard();
-      checkVictoryForUser();
-    }
-
-    return true;
-  }
-
-  function checkVictoryForUser() {
-    if (isAutoPlaying) return;
-    const won =
-      towers[1].length === numDisks || towers[2].length === numDisks;
-    if (won) {
-      setTimeout(() => {
-        alert(
-          `Bravo, vous avez gagné en ${moveCount} coups !\nScore: ${scoreEl.textContent}`
-        );
-      }, 50);
-    }
-  }
-
-  /* ---------- Gestion des clics sur les tours ---------- */
-  function clearSelected() {
-    towersEls.forEach((towerEl) => {
-      const disks = towerEl.querySelectorAll(".disk");
-      disks.forEach((d) => d.classList.remove("selected"));
-    });
-    selectedTowerIndex = null;
-  }
-
-  towersEls.forEach((towerEl) => {
-    towerEl.addEventListener("click", async () => {
-      if (isAutoPlaying) return;
-
-      const towerIndex = Number(towerEl.dataset.index);
-
-      if (selectedTowerIndex === null) {
-        // sélectionner la tour source
-        const towerArr = towers[towerIndex];
-        if (!towerArr.length) return;
-        selectedTowerIndex = towerIndex;
-
-        const topSize = towerArr[towerArr.length - 1];
-        const topDisk = diskElements.get(topSize);
-        if (topDisk) topDisk.classList.add("selected");
-      } else if (selectedTowerIndex === towerIndex) {
-        // désélection
-        clearSelected();
-      } else {
-        const from = selectedTowerIndex;
-        const to = towerIndex;
-        clearSelected();
-        const ok = await moveDisk(from, to, true);
-        if (!ok) {
-          // si le déplacement est invalide, garder la sélection de la tour source ?
-          // On choisit de tout désélectionner pour simplifier.
-        }
-      }
-    });
-  });
-
-  /* ---------- Démo automatique (algo récursif) ---------- */
-  async function hanoiRecursive(n, from, to, aux) {
-    if (cancelAuto) return;
-    if (n === 0) return;
-
-    await hanoiRecursive(n - 1, from, aux, to);
-    if (cancelAuto) return;
-    await moveDisk(from, to, false);
-    moveCount++;
-    updateScoreboard();
-    await hanoiRecursive(n - 1, aux, to, from);
-  }
-
-  async function startAutoDemo() {
-    if (isAutoPlaying) return;
-    cancelAuto = false;
-    moveCount = 0;
-    resetState(true); // re-génère avec numDisks actuel
-    isAutoPlaying = true;
-    disableControlsDuringAuto(true);
-    updateScoreboard();
-
-    try {
-      await hanoiRecursive(numDisks, 0, 2, 1);
-    } finally {
-      isAutoPlaying = false;
-      disableControlsDuringAuto(false);
-      cancelAuto = true;
-    }
-  }
-
-  /* ---------- Boutons ---------- */
-  startBtn.addEventListener("click", () => {
-    resetState(false);
-  });
-
-  resetBtn.addEventListener("click", () => {
-    resetState(true);
-  });
-
-  autoDemoBtn.addEventListener("click", () => {
-    startAutoDemo();
-  });
-
-  diskCountInput.addEventListener("change", () => {
-    // Optionnel : reconfigurer automatiquement quand on change la valeur
-    resetState(false);
-  });
-
-  /* ---------- Démarrage ---------- */
-  resetState(true);
 });
+
+// Démarrer le jeu
+function startGame() {
+    gameState.diskCount = parseInt(diskCountInput.value);
+    gameState.moves = 0;
+    gameState.selectedDisk = null;
+    gameState.selectedTower = null;
+    gameState.gameStarted = true;
+    gameState.autoMode = false;
+    
+    // Initialiser les tours
+    gameState.towers = [[], [], []];
+    for (let i = gameState.diskCount; i >= 1; i--) {
+        gameState.towers[0].push(i);
+    }
+    
+    updateDisplay();
+    updateOptimalMoves();
+    startBtn.disabled = true;
+    diskCountInput.disabled = true;
+}
+
+// Réinitialiser le jeu
+function resetGame() {
+    gameState = {
+        towers: [[], [], []],
+        diskCount: 3,
+        moves: 0,
+        selectedDisk: null,
+        selectedTower: null,
+        gameStarted: false,
+        autoMode: false,
+        animating: false
+    };
+    
+    diskCountInput.value = 3;
+    updateDisplay();
+    updateOptimalMoves();
+    startBtn.disabled = false;
+    diskCountInput.disabled = false;
+    autoBtn.disabled = false;
+}
+
+// Gestion des clics sur les tours
+function handleTowerClick(towerIndex) {
+    if (!gameState.gameStarted || gameState.autoMode || gameState.animating) return;
+    
+    const tower = gameState.towers[towerIndex];
+    
+    if (gameState.selectedTower === null) {
+        // Sélectionner un disque
+        if (tower.length > 0) {
+            gameState.selectedTower = towerIndex;
+            gameState.selectedDisk = tower[tower.length - 1];
+            highlightDisk(towerIndex, true);
+        }
+    } else {
+        // Déplacer le disque
+        if (towerIndex === gameState.selectedTower) {
+            // Désélectionner
+            highlightDisk(gameState.selectedTower, false);
+            gameState.selectedTower = null;
+            gameState.selectedDisk = null;
+        } else if (canMoveDisk(gameState.selectedTower, towerIndex)) {
+            moveDisk(gameState.selectedTower, towerIndex);
+        } else {
+            // Mouvement invalide - réinitialiser la sélection
+            highlightDisk(gameState.selectedTower, false);
+            gameState.selectedTower = null;
+            gameState.selectedDisk = null;
+        }
+    }
+}
+
+// Vérifier si un mouvement est valide
+function canMoveDisk(fromTower, toTower) {
+    const from = gameState.towers[fromTower];
+    const to = gameState.towers[toTower];
+    
+    if (from.length === 0) return false;
+    if (to.length === 0) return true;
+    
+    return from[from.length - 1] < to[to.length - 1];
+}
+
+// Déplacer un disque avec animation
+async function moveDisk(fromTower, toTower) {
+    if (!canMoveDisk(fromTower, toTower)) return;
+    
+    gameState.animating = true;
+    const disk = gameState.towers[fromTower].pop();
+    
+    // Animation
+    await animateDiskMove(fromTower, toTower, disk);
+    
+    gameState.towers[toTower].push(disk);
+    gameState.moves++;
+    
+    highlightDisk(fromTower, false);
+    gameState.selectedTower = null;
+    gameState.selectedDisk = null;
+    
+    updateDisplay();
+    gameState.animating = false;
+    
+    // Vérifier la victoire
+    if (!gameState.autoMode && checkWin()) {
+        setTimeout(() => showVictory(), 300);
+    }
+}
+
+// Animation de déplacement de disque
+function animateDiskMove(fromTower, toTower, diskSize) {
+    return new Promise(resolve => {
+        const fromElement = document.getElementById(`tower${fromTower}`);
+        const toElement = document.getElementById(`tower${toTower}`);
+        const diskElement = fromElement.querySelector(`[data-size="${diskSize}"]`);
+        
+        if (!diskElement) {
+            resolve();
+            return;
+        }
+        
+        // Obtenir les positions
+        const fromRect = fromElement.getBoundingClientRect();
+        const toRect = toElement.getBoundingClientRect();
+        
+        // Calculer la translation
+        const deltaX = toRect.left - fromRect.left;
+        const deltaY = -200; // Hauteur de l'arc
+        
+        diskElement.classList.add('animating');
+        
+        // Première phase : monter
+        diskElement.style.transform = `translateY(${deltaY}px)`;
+        
+        setTimeout(() => {
+            // Deuxième phase : déplacer horizontalement
+            diskElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            
+            setTimeout(() => {
+                // Troisième phase : descendre
+                diskElement.style.transform = `translate(${deltaX}px, 0px)`;
+                
+                setTimeout(() => {
+                    diskElement.classList.remove('animating');
+                    diskElement.style.transform = '';
+                    resolve();
+                }, 400);
+            }, 400);
+        }, 400);
+    });
+}
+
+// Surligner un disque
+function highlightDisk(towerIndex, highlight) {
+    const tower = document.getElementById(`tower${towerIndex}`);
+    const disks = tower.querySelectorAll('.disk');
+    if (disks.length > 0) {
+        const topDisk = disks[disks.length - 1];
+        if (highlight) {
+            topDisk.classList.add('selected');
+        } else {
+            topDisk.classList.remove('selected');
+        }
+    }
+}
+
+// Mettre à jour l'affichage
+function updateDisplay() {
+    movesDisplay.textContent = gameState.moves;
+    updateScore();
+    
+    // Afficher les disques
+    for (let i = 0; i < 3; i++) {
+        const towerElement = document.getElementById(`tower${i}`);
+        towerElement.innerHTML = '';
+        
+        gameState.towers[i].forEach(diskSize => {
+            const disk = document.createElement('div');
+            disk.className = 'disk';
+            disk.dataset.size = diskSize;
+            towerElement.appendChild(disk);
+        });
+    }
+}
+
+// Calculer et afficher le score
+function updateScore() {
+    const optimal = Math.pow(2, gameState.diskCount) - 1;
+    let score = 0;
+    
+    if (gameState.moves > 0) {
+        score = Math.max(0, Math.round(1000 * (1 - (gameState.moves - optimal) / optimal)));
+    }
+    
+    scoreDisplay.textContent = score;
+}
+
+// Mettre à jour les coups optimaux
+function updateOptimalMoves() {
+    const optimal = Math.pow(2, gameState.diskCount) - 1;
+    optimalDisplay.textContent = optimal;
+}
+
+// Vérifier la victoire
+function checkWin() {
+    return gameState.towers[2].length === gameState.diskCount;
+}
+
+// Afficher la victoire
+function showVictory() {
+    const optimal = Math.pow(2, gameState.diskCount) - 1;
+    const score = Math.max(0, Math.round(1000 * (1 - (gameState.moves - optimal) / optimal)));
+    
+    let message = `🎉 Félicitations ! 🎉\n\n`;
+    message += `Vous avez résolu le puzzle en ${gameState.moves} coups !\n`;
+    message += `Coups optimaux : ${optimal}\n`;
+    message += `Score : ${score} points\n\n`;
+    
+    if (gameState.moves === optimal) {
+        message += `⭐ PARFAIT ! Vous avez réussi en un nombre optimal de coups ! ⭐`;
+    } else if (gameState.moves <= optimal * 1.5) {
+        message += `👏 Très bon résultat !`;
+    } else {
+        message += `💪 Bien joué ! Réessayez pour améliorer votre score !`;
+    }
+    
+    alert(message);
+}
+
+// Mode démo automatique
+async function startAutoDemo() {
+    gameState.diskCount = parseInt(diskCountInput.value);
+    gameState.moves = 0;
+    gameState.gameStarted = true;
+    gameState.autoMode = true;
+    
+    // Initialiser les tours
+    gameState.towers = [[], [], []];
+    for (let i = gameState.diskCount; i >= 1; i--) {
+        gameState.towers[0].push(i);
+    }
+    
+    updateDisplay();
+    updateOptimalMoves();
+    startBtn.disabled = true;
+    autoBtn.disabled = true;
+    diskCountInput.disabled = true;
+    
+    // Lancer l'algorithme récursif
+    await solveHanoi(gameState.diskCount, 0, 2, 1);
+    
+    setTimeout(() => {
+        alert(`🤖 Démo terminée !\n\nLe puzzle a été résolu en ${gameState.moves} coups optimaux.`);
+        autoBtn.disabled = false;
+    }, 500);
+}
+
+// Algorithme récursif des Tours de Hanoï
+async function solveHanoi(n, from, to, aux) {
+    if (n === 1) {
+        await moveDisk(from, to);
+        await sleep(600);
+        return;
+    }
+    
+    await solveHanoi(n - 1, from, aux, to);
+    await moveDisk(from, to);
+    await sleep(600);
+    await solveHanoi(n - 1, aux, to, from);
+}
+
+// Fonction utilitaire pour les délais
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Basculer entre mode clair et sombre
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    
+    if (document.body.classList.contains('dark-mode')) {
+        themeBtn.textContent = '☀️';
+    } else {
+        themeBtn.textContent = '🌙';
+    }
+}

@@ -1,12 +1,17 @@
 On veut recréer un jeu des tour de hanoï, génère une page web simple comportant 1 bouton démarrer, une zone affichant
- les trois tours et un champ permettant de choisir le nombre d'anneau au début de partie. 
- A partir de la page ci dessus, rends le jeu bien plus agréable visuellement comme si il y avait une interface 
- graphique. Fais en sorte qu'il n'y ait pas de box autour des tours et que ce soit coloré et uni. 
- Ensuite ajoute un mode de démo automatique : Ajoute un bouton démo auto qui quand on appuie dessus , 
- lance l'algorithme récursif classique des Tours de Hanoï et joue la partie visuellement. 
- Tu peux maintenant rajouter , un bouton qui permet de passer du mode clair au mode sombre , 
- une alerte en cas de victoire de l'utilisateur , un scoreboard qui permet de marque plus ou moins de points en 
- fonction du nombre de coup et rajouter des animations de glissement fluide pour les disques , animations qui 
- fonctionnent tant en mode manuel qu'en mode auto et enfin rajoute un bouton reset. Pour l'animation fais juste 
- en sorte que chaque disque garde sa taille et soit téléporté en haut de sa tour d'arrivée avant de s'empiler au 
- bon endroit. De plus j'aimerais que tout ceci soit séparé en trois fichiers : hanoi.html , styles.css et script.js
+les trois tours et un champ permettant de choisir le nombre d'anneau au début de partie. 
+
+A partir de la page ci dessus, rends le jeu bien plus agréable visuellement comme si il y avait une interface 
+graphique. Fais en sorte qu'il n'y ait pas de box autour des tours et que ce soit coloré et uni.
+
+Ensuite ajoute un mode de démo automatique : Ajoute un bouton démo auto qui quand on appuie dessus , 
+lance l'algorithme récursif classique des Tours de Hanoï et joue la partie visuellement. 
+Tu peux maintenant rajouter , un bouton qui permet de passer du mode clair au mode sombre , 
+une alerte en cas de victoire de l'utilisateur , un scoreboard qui permet de marque plus ou moins de points en 
+fonction du nombre de coup et rajouter des animations de glissement fluide pour les disques , animations qui 
+fonctionnent tant en mode manuel qu'en mode auto et enfin rajoute un bouton reset. Pour l'animation fais juste 
+en sorte que chaque disque garde sa taille et soit téléporté en haut de sa tour d'arrivée avant de s'empiler au 
+bon endroit. De plus j'aimerais que tout ceci soit séparé en trois fichiers : hanoi.html , styles.css et script.js
+
+
+Etape 7 faite avec claude AI avec le même prompt.
