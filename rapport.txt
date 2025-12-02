@@ -1,6 +1,13 @@
-J'ai ensuite demandé de faire l'étape 5
+J'ai ensuite demandé de faire l'étape 6
 
-prompt: Maintenant il faut ajouter un mode de démo automatique : Ajoute un bouton démo auto qui quand on appuie dessus,
-lance l'algorithme récursif classique des Tours de Hanoï et joue la partie visuellement.
+prompt: Tu peux maintenant rajouter , un bouton qui permet de passer du mode clair au mode sombre , une alerte en cas 
+de victoire de l'utilisateur , un scoreboard qui permet de marque plus ou moins de points en fonction du nombre de 
+coup et rajouter des animations de glissement fluide pour les disques , animations qui fonctionnent tant 
+en mode manuel qu'en mode auto et enfin rajoute un bouton reset.
 
-le code généré est dans hanoi.html.
+J'ai ensuite demandé de séparer le fichier en trois afin que ce soit plus lisible et bie moins gros a réécrire par
+le LLM.
+
+Je me suis un peu battu pour l'animation car elle ne marchait pas.
+
+le code généré est dans hanoi.html, styles.css et script.js.
