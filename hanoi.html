@@ -1,112 +1,71 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <title>Jeu des tours de Hanoï</title>
-
-  <!-- Police Google -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-  <!-- Feuille de style -->
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Tours de Hanoï</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-wrapper">
-    <div class="app-card">
-      <header>
-        <div class="title-block">
-          <h1>
-            Tours de Hanoï
-            <span class="pill">Interface simple</span>
-          </h1>
-          <div class="subtitle">
-            Clique sur une tour de départ puis sur une tour d’arrivée pour déplacer les anneaux.
-          </div>
-        </div>
-        <div class="header-right">
-          <button id="themeToggle" class="secondary small">
-            <span class="icon">🌙</span><span>Mode sombre</span>
-          </button>
-          <div class="badge-min-moves">
-            Minimal : <span id="minMoves">?</span> coups
-          </div>
-        </div>
-      </header>
+  <main class="app">
+    <header class="app-header">
+      <h1>Tours de Hanoï</h1>
+      <p>Déplace tous les disques d&#39;une tour à une autre en un minimum de coups.</p>
+    </header>
 
-      <div class="top-row">
-        <div class="controls">
-          <div class="controls-left">
-            <label for="numDisks">Nombre d’anneaux</label>
-            <input type="number" id="numDisks" min="1" max="10" value="3">
-          </div>
-          <div class="controls-right">
-            <button id="startBtn">
-              <span class="icon">🎮</span>
-              <span>Nouvelle partie</span>
-            </button>
-            <button id="resetBtn" class="secondary">
-              <span class="icon">⟲</span>
-              <span>Reset</span>
-            </button>
-            <button id="demoBtn" class="secondary">
-              <span class="icon">🤖</span>
-              <span>Démo auto</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="stats-panel">
-          <div class="stats-row">
-            <div class="stat-chip">
-              <span class="stat-label">Coups joués</span>
-              <span class="stat-value" id="moveCount">0</span>
-            </div>
-            <div class="stat-chip">
-              <span class="stat-label">Objectif</span>
-              <span class="stat-value" id="goalMoves">0</span>
-            </div>
-            <div class="stat-chip">
-              <span class="stat-label">Score</span>
-              <span class="stat-value" id="scoreValue">0</span>
-            </div>
-            <div class="stat-chip">
-              <span class="stat-label">Meilleur score</span>
-              <span class="stat-value" id="bestScoreValue">0</span>
-            </div>
-          </div>
-        </div>
+    <section class="controls">
+      <div class="controls-left">
+        <label for="diskCount">
+          Nombre d&#39;anneaux :
+          <input
+            type="number"
+            id="diskCount"
+            min="3"
+            max="8"
+            value="4"
+          />
+        </label>
+        <button id="startBtn" class="btn primary">Démarrer</button>
+        <button id="autoDemoBtn" class="btn">Démo auto</button>
+        <button id="resetBtn" class="btn subtle">Reset</button>
       </div>
 
-      <div class="game-info">
-        <div id="message"></div>
+      <div class="controls-right">
+        <button id="themeToggle" class="btn secondary">Mode sombre</button>
       </div>
+    </section>
 
-      <div class="game-surface">
-        <div class="towers">
-          <div class="tower" data-index="0">
-            <div class="disks"></div>
-            <div class="tower-label"><span>A</span>Tour 1</div>
-          </div>
-          <div class="tower" data-index="1">
-            <div class="disks"></div>
-            <div class="tower-label"><span>B</span>Tour 2</div>
-          </div>
-          <div class="tower" data-index="2">
-            <div class="disks"></div>
-            <div class="tower-label"><span>C</span>Tour 3</div>
-          </div>
+    <section class="scoreboard">
+      <div>Coups : <span id="moveCount">0</span></div>
+      <div>Coups optimaux : <span id="optimalMoves">0</span></div>
+      <div>Score : <span id="score">0</span></div>
+      <div id="scoreMessage" class="score-message"></div>
+    </section>
+
+    <section class="game-area">
+      <div class="towers">
+        <div class="tower" data-index="0">
+          <div class="peg"></div>
+          <div class="base"></div>
+        </div>
+        <div class="tower" data-index="1">
+          <div class="peg"></div>
+          <div class="base"></div>
+        </div>
+        <div class="tower" data-index="2">
+          <div class="peg"></div>
+          <div class="base"></div>
         </div>
       </div>
+      <p class="hint">
+        Cliquez sur une tour pour sélectionner le disque du haut, puis sur une autre pour le déposer.
+      </p>
+    </section>
 
-      <div class="footer-hint">
-        💡 Astuce : le nombre minimal de coups est
-        <span class="key-badge">2ⁿ − 1</span>
-        pour <span class="key-badge">n</span> anneaux.
-      </div>
-    </div>
-  </div>
+    <footer class="app-footer">
+      <small>Mode manuel &amp; démo automatique • Tours de Hanoï</small>
+    </footer>
+  </main>
 
-  <!-- Script JS -->
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
