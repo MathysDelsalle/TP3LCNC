@@ -101,7 +101,7 @@
 
     .top-row {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
       gap: 14px;
       margin-bottom: 14px;
     }
@@ -116,6 +116,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .controls-left,
@@ -151,7 +152,7 @@
     }
 
     button {
-      padding: 7px 16px;
+      padding: 7px 14px;
       border-radius: 999px;
       border: none;
       cursor: pointer;
@@ -164,6 +165,14 @@
       gap: 6px;
       box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35);
       transition: 0.12s ease;
+      white-space: nowrap;
+    }
+
+    button.secondary {
+      background: white;
+      color: var(--primary);
+      border: 1px solid #c7d2fe;
+      box-shadow: none;
     }
 
     button:hover {
@@ -172,9 +181,17 @@
       box-shadow: 0 14px 26px rgba(37, 99, 235, 0.4);
     }
 
+    button.secondary:hover {
+      box-shadow: 0 8px 16px rgba(148, 163, 184, 0.35);
+    }
+
     button:active {
       transform: translateY(0px) scale(0.98);
       box-shadow: 0 7px 14px rgba(37, 99, 235, 0.3);
+    }
+
+    button.secondary:active {
+      box-shadow: 0 4px 10px rgba(148, 163, 184, 0.3);
     }
 
     button span.icon {
@@ -428,6 +445,10 @@
               <span class="icon">🎮</span>
               <span>Nouvelle partie</span>
             </button>
+            <button id="demoBtn" class="secondary">
+              <span class="icon">🤖</span>
+              <span>Démo auto</span>
+            </button>
           </div>
         </div>
 
@@ -476,6 +497,7 @@
 
   <script>
     const startBtn = document.getElementById('startBtn');
+    const demoBtn = document.getElementById('demoBtn');
     const numDisksInput = document.getElementById('numDisks');
     const moveCountSpan = document.getElementById('moveCount');
     const goalMovesSpan = document.getElementById('goalMoves');
@@ -488,11 +510,30 @@
     let moveCount = 0;
     let selectedFrom = null;
 
+    // Variables pour la démo auto
+    let demoRunning = false;
+    let demoMoves = [];
+    let demoIndex = 0;
+    const demoDelay = 400; // ms entre chaque coup
+    let demoTimeoutId = null;
+
     function computeMinMoves(n) {
       return Math.pow(2, n) - 1;
     }
 
+    function resetDemoState() {
+      demoRunning = false;
+      demoMoves = [];
+      demoIndex = 0;
+      if (demoTimeoutId !== null) {
+        clearTimeout(demoTimeoutId);
+        demoTimeoutId = null;
+      }
+    }
+
     function startGame() {
+      resetDemoState();
+
       numDisks = parseInt(numDisksInput.value, 10);
       if (isNaN(numDisks) || numDisks < 1) numDisks = 1;
       if (numDisks > 10) numDisks = 10;
@@ -542,6 +583,11 @@
     }
 
     function onTowerClick(event) {
+      if (demoRunning) {
+        messageDiv.textContent = "Démo automatique en cours. Clique sur « Nouvelle partie » pour reprendre la main.";
+        return;
+      }
+
       const towerEl = event.currentTarget;
       const index = parseInt(towerEl.dataset.index, 10);
       const tower = towers[index];
@@ -612,9 +658,61 @@
       }
     }
 
+    // === Démo automatique ===
+
+    function generateHanoiMoves(n, from, to, aux) {
+      if (n === 0) return;
+      generateHanoiMoves(n - 1, from, aux, to);
+      demoMoves.push([from, to]);
+      generateHanoiMoves(n - 1, aux, to, from);
+    }
+
+    function playDemoStep() {
+      if (!demoRunning) return;
+
+      if (demoIndex >= demoMoves.length) {
+        demoRunning = false;
+        messageDiv.textContent = "Démo terminée en " + moveCount + " coups (solution optimale).";
+        return;
+      }
+
+      const [from, to] = demoMoves[demoIndex];
+      const fromTower = towers[from];
+      const toTower = towers[to];
+
+      const diskToMove = fromTower.pop();
+      toTower.push(diskToMove);
+
+      moveCount++;
+      moveCountSpan.textContent = moveCount;
+
+      renderTowers();
+      demoIndex++;
+
+      demoTimeoutId = setTimeout(playDemoStep, demoDelay);
+    }
+
+    function startDemo() {
+      // On repart d’une position initiale propre
+      startGame();
+
+      resetDemoState();
+      demoRunning = true;
+
+      // Génère la liste de tous les coups avec l’algorithme récursif classique
+      generateHanoiMoves(numDisks, 0, 2, 1);
+
+      messageDiv.textContent = "Démo automatique en cours... (" + demoMoves.length + " coups)";
+      demoIndex = 0;
+      playDemoStep();
+    }
+
+    // Événements
     startBtn.addEventListener('click', startGame);
+    demoBtn.addEventListener('click', startDemo);
     towerElements.forEach(t => t.addEventListener('click', onTowerClick));
 
+    // Initialisation
     startGame();
   </script>
 </body>
