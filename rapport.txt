@@ -1,1 +1,6 @@
-L'étape trois a aussi été faite durant l'étape une , il n'y a donc aucune modification
+Pour l'étape 4 j'ai demandé au LLM de rendre le jeu bien plus joli comme s'il y avait une interface graphique.
+
+prompt: peux tu a partir du code ci dessus, rendre le jeu bien plus agréable visuellement comme si il y avait 
+une interface graphique.
+
+le code généré est dans hanoi.html.

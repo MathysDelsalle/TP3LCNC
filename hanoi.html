@@ -3,165 +3,514 @@
 <head>
   <meta charset="UTF-8">
   <title>Jeu des tours de Hanoï</title>
+
+  <!-- Police Google (facultatif, mais joli) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --primary-soft: rgba(99, 102, 241, 0.12);
+      --bg: radial-gradient(circle at top, #eef2ff 0, #e0f2fe 40%, #f9fafb 100%);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --border-radius-xl: 18px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: var(--bg);
+      color: #0f172a;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 1100px;
       padding: 20px;
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
+    .app-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border-radius: 26px;
+      padding: 24px 26px 28px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.35);
     }
 
-    .controls {
+    header {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .title-block h1 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 20px;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .badge-min-moves {
+      font-size: 0.8rem;
+      background: rgba(15, 23, 42, 0.04);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+      color: #4b5563;
+    }
+
+    /* Zone de contrôle */
+
+    .top-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .controls,
+    .stats-panel {
+      background: rgba(248, 250, 252, 0.9);
+      border-radius: var(--border-radius-xl);
+      padding: 12px 16px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .controls-left,
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     .controls label {
-      font-weight: bold;
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: #4b5563;
     }
 
     #numDisks {
-      width: 60px;
-      padding: 5px;
+      width: 70px;
+      padding: 6px 8px;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      outline: none;
+      text-align: center;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      background: #fff;
+    }
+
+    #numDisks:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.28);
+      transform: translateY(-1px);
     }
 
     button {
-      padding: 8px 16px;
+      padding: 7px 16px;
+      border-radius: 999px;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
-      background: #007bff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
       color: white;
-      font-weight: bold;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 10px 22px rgba(79, 70, 229, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
     }
 
     button:hover {
-      filter: brightness(1.1);
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+      box-shadow: 0 14px 26px rgba(79, 70, 229, 0.4);
     }
 
+    button:active {
+      transform: translateY(0px) scale(0.98);
+      box-shadow: 0 7px 14px rgba(79, 70, 229, 0.3);
+    }
+
+    button span.icon {
+      font-size: 1rem;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+
+    .stat-chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid rgba(203, 213, 225, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-weight: 500;
+      color: #64748b;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* Zone message */
+
     .game-info {
-      text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(239, 246, 255, 0.95);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1d4ed8;
+    }
+
+    .game-info::before {
+      content: "ℹ️";
+      font-size: 1rem;
     }
 
     #message {
-      margin-top: 5px;
+      flex: 1;
       min-height: 1.2em;
-      color: #555;
+    }
+
+    /* Zone de jeu */
+
+    .game-surface {
+      margin-top: 8px;
+      padding: 18px 14px 18px;
+      border-radius: 20px;
+      background: radial-gradient(circle at top, #e0f2fe 0, #eff6ff 45%, #e5e7eb 100%);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .game-surface::before {
+      /* léger halo en haut */
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.8), transparent 55%);
+      opacity: 0.8;
+      pointer-events: none;
     }
 
     .towers {
+      position: relative;
       display: flex;
-      justify-content: space-around;
+      justify-content: space-evenly;
       align-items: flex-end;
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
-      gap: 20px;
+      gap: 28px;
+      padding: 18px 10px 10px;
     }
 
     .tower {
       flex: 1;
-      max-width: 220px;
+      max-width: 250px;
       height: 260px;
-      border-bottom: 4px solid #444;
+      border-radius: 20px;
       position: relative;
       display: flex;
       justify-content: center;
+      align-items: flex-end;
       cursor: pointer;
+      padding-bottom: 32px;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+      border: 1px solid transparent;
+    }
+
+    .tower:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(148, 163, 184, 0.6);
+      background: rgba(255, 255, 255, 0.7);
+      border-color: rgba(148, 163, 184, 0.8);
     }
 
     .tower::before {
       /* poteau vertical */
       content: "";
       position: absolute;
-      bottom: 0;
-      width: 10px;
-      height: 220px;
-      background: #777;
-      border-radius: 5px;
+      bottom: 32px;
+      width: 12px;
+      height: 195px;
+      background: linear-gradient(to bottom, #e5e7eb, #9ca3af);
+      border-radius: 999px;
+      box-shadow: inset 0 0 4px rgba(15, 23, 42, 0.4);
+    }
+
+    .tower::after {
+      /* base */
+      content: "";
+      position: absolute;
+      bottom: 22px;
+      width: 75%;
+      height: 12px;
+      background: linear-gradient(to right, #6b7280, #374151);
+      border-radius: 999px;
+      box-shadow: 0 4px 6px rgba(15, 23, 42, 0.6);
+    }
+
+    .tower.selected {
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.9), 0 14px 30px rgba(37, 99, 235, 0.35);
+      transform: translateY(-4px);
+      background: rgba(219, 234, 254, 0.9);
+      border-color: rgba(59, 130, 246, 0.9);
     }
 
     .tower.selected::before {
-      box-shadow: 0 0 10px rgba(0, 123, 255, 0.9);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.9);
     }
 
     .tower-label {
       position: absolute;
-      bottom: -24px;
-      font-weight: bold;
-      color: #333;
+      bottom: 2px;
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 0.85rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.88);
+      color: white;
+      letter-spacing: 0.02em;
+    }
+
+    .tower-label span {
+      opacity: 0.65;
+      font-weight: 400;
+      margin-right: 4px;
     }
 
     .disks {
       position: absolute;
-      bottom: 4px;
+      bottom: 34px;
       width: 100%;
       display: flex;
       flex-direction: column-reverse;
       align-items: center;
       pointer-events: none;
+      padding: 0 6px;
     }
 
     .disk {
-      height: 20px;
-      margin-top: 4px;
-      border-radius: 10px;
+      height: 22px;
+      margin-top: 5px;
+      border-radius: 999px;
       text-align: center;
-      line-height: 20px;
+      line-height: 22px;
       font-size: 12px;
-      color: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      pointer-events: auto; /* pour cliquer si besoin, mais on gère sur la tour */
+      color: #f9fafb;
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.35);
+      pointer-events: auto;
+      position: relative;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
     }
 
-    /* Quelques couleurs de disques différentes */
-    .disk.size-1 { background: #ff6b6b; }
-    .disk.size-2 { background: #f0ad4e; }
-    .disk.size-3 { background: #5bc0de; }
-    .disk.size-4 { background: #5cb85c; }
-    .disk.size-5 { background: #d9534f; }
-    .disk.size-6 { background: #9b59b6; }
-    .disk.size-7 { background: #e67e22; }
-    .disk.size-8 { background: #3498db; }
-    .disk.size-9 { background: #1abc9c; }
-    .disk.size-10 { background: #2ecc71; }
+    .disk::after {
+      /* effet “brillance” */
+      content: "";
+      position: absolute;
+      inset: 3px 25%;
+      border-radius: 999px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.45), transparent);
+      opacity: 0.9;
+      pointer-events: none;
+    }
 
+    .tower.selected .disk:last-child {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 18px rgba(37, 99, 235, 0.6);
+    }
+
+    /* Palette de couleurs des disques */
+    .disk.size-1 { background: #f97373; }
+    .disk.size-2 { background: #fb923c; }
+    .disk.size-3 { background: #facc15; color: #111827; }
+    .disk.size-4 { background: #22c55e; }
+    .disk.size-5 { background: #0ea5e9; }
+    .disk.size-6 { background: #6366f1; }
+    .disk.size-7 { background: #8b5cf6; }
+    .disk.size-8 { background: #ec4899; }
+    .disk.size-9 { background: #14b8a6; }
+    .disk.size-10 { background: #ef4444; }
+
+    /* Bas de page / mini aide */
+
+    .footer-hint {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .key-badge {
+      padding: 2px 6px;
+      border-radius: 5px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: rgba(248, 250, 252, 0.9);
+      font-size: 0.7rem;
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    @media (max-width: 900px) {
+      .top-row {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .towers {
+        gap: 14px;
+      }
+
+      .tower {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .app-card {
+        padding: 18px 16px 20px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .game-surface {
+        padding-inline: 6px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Jeu des tours de Hanoï</h1>
+  <div class="app-wrapper">
+    <div class="app-card">
+      <header>
+        <div class="title-block">
+          <h1>
+            Tours de Hanoï
+            <span class="pill">Jeu interactif</span>
+          </h1>
+          <div class="subtitle">
+            Clique sur une tour de départ puis sur une tour d’arrivée pour déplacer les anneaux.
+          </div>
+        </div>
+        <div class="badge-min-moves">
+          Nombre minimal de coups : <span id="minMoves">? </span>
+        </div>
+      </header>
 
-  <div class="controls">
-    <label for="numDisks">Nombre d’anneaux :</label>
-    <input type="number" id="numDisks" min="1" max="10" value="3">
-    <button id="startBtn">Démarrer la partie</button>
-  </div>
+      <div class="top-row">
+        <div class="controls">
+          <div class="controls-left">
+            <label for="numDisks">Nombre d’anneaux</label>
+            <input type="number" id="numDisks" min="1" max="10" value="3">
+          </div>
+          <div class="controls-right">
+            <button id="startBtn">
+              <span class="icon">▶️</span>
+              <span>Démarrer une nouvelle partie</span>
+            </button>
+          </div>
+        </div>
 
-  <div class="game-info">
-    <div>Nombre de coups : <span id="moveCount">0</span></div>
-    <div id="message"></div>
-  </div>
+        <div class="stats-panel">
+          <div class="stats-row">
+            <div class="stat-chip">
+              <span class="stat-label">Coups joués</span>
+              <span class="stat-value" id="moveCount">0</span>
+            </div>
+            <div class="stat-chip">
+              <span class="stat-label">Objectif</span>
+              <span class="stat-value" id="goalMoves">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <div class="towers">
-    <div class="tower" data-index="0">
-      <div class="disks"></div>
-      <div class="tower-label">Tour 1</div>
-    </div>
-    <div class="tower" data-index="1">
-      <div class="disks"></div>
-      <div class="tower-label">Tour 2</div>
-    </div>
-    <div class="tower" data-index="2">
-      <div class="disks"></div>
-      <div class="tower-label">Tour 3</div>
+      <div class="game-info">
+        <div id="message"></div>
+      </div>
+
+      <div class="game-surface">
+        <div class="towers">
+          <div class="tower" data-index="0">
+            <div class="disks"></div>
+            <div class="tower-label"><span>A</span>Tour 1</div>
+          </div>
+          <div class="tower" data-index="1">
+            <div class="disks"></div>
+            <div class="tower-label"><span>B</span>Tour 2</div>
+          </div>
+          <div class="tower" data-index="2">
+            <div class="disks"></div>
+            <div class="tower-label"><span>C</span>Tour 3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-hint">
+        💡 Astuce : essaie d’atteindre l’objectif en le moins de coups possible.
+        <span class="key-badge">2ⁿ − 1</span> coups pour <span class="key-badge">n</span> anneaux.
+      </div>
     </div>
   </div>
 
@@ -169,6 +518,8 @@
     const startBtn = document.getElementById('startBtn');
     const numDisksInput = document.getElementById('numDisks');
     const moveCountSpan = document.getElementById('moveCount');
+    const goalMovesSpan = document.getElementById('goalMoves');
+    const minMovesSpan = document.getElementById('minMoves');
     const messageDiv = document.getElementById('message');
     const towerElements = document.querySelectorAll('.tower');
 
@@ -177,22 +528,29 @@
     let moveCount = 0;
     let selectedFrom = null;     // index de la tour sélectionnée pour le déplacement
 
+    function computeMinMoves(n) {
+      return Math.pow(2, n) - 1;
+    }
+
     function startGame() {
       numDisks = parseInt(numDisksInput.value, 10);
       if (isNaN(numDisks) || numDisks < 1) numDisks = 1;
       if (numDisks > 10) numDisks = 10;
       numDisksInput.value = numDisks;
 
-      // initialisation des tours
+      const minMoves = computeMinMoves(numDisks);
+      moveCount = 0;
       towers = [[], [], []];
       for (let size = numDisks; size >= 1; size--) {
         towers[0].push(size);
       }
 
-      moveCount = 0;
       selectedFrom = null;
       moveCountSpan.textContent = moveCount;
-      messageDiv.textContent = "Clique d'abord sur une tour de départ, puis sur une tour d'arrivée.";
+      goalMovesSpan.textContent = minMoves;
+      minMovesSpan.textContent = minMoves;
+      messageDiv.textContent = "Clique d’abord sur une tour de départ, puis sur une tour d’arrivée pour déplacer un anneau.";
+
       clearSelection();
       renderTowers();
     }
@@ -208,8 +566,8 @@
           diskEl.classList.add('disk', `size-${size}`);
 
           // largeur proportionnelle à la taille
-          const minWidth = 40;   // en %
-          const maxWidth = 90;   // en %
+          const minWidth = 35;   // en %
+          const maxWidth = 92;   // en %
           const ratio = (size - 1) / Math.max(1, (numDisks - 1));
           const width = minWidth + (maxWidth - minWidth) * ratio;
           diskEl.style.width = width + '%';
@@ -238,7 +596,7 @@
         selectedFrom = index;
         clearSelection();
         towerEl.classList.add('selected');
-        messageDiv.textContent = "Choisis maintenant la tour d'arrivée.";
+        messageDiv.textContent = "Choisis maintenant la tour d’arrivée.";
       } else {
         // 2e clic : tentative de déplacement
         const from = selectedFrom;
@@ -267,7 +625,7 @@
 
         // règle : on ne peut poser qu'un plus petit disque sur un plus grand
         if (topDest !== undefined && topDest < diskToMove) {
-          messageDiv.textContent = "Coup interdit : on ne peut pas poser un grand disque sur un plus petit.";
+          messageDiv.textContent = "Coup interdit : tu ne peux pas poser un grand disque sur un plus petit.";
           selectedFrom = null;
           clearSelection();
           return;
@@ -279,7 +637,7 @@
 
         moveCount++;
         moveCountSpan.textContent = moveCount;
-        messageDiv.textContent = "Coup joué. À toi de continuer !";
+        messageDiv.textContent = "Coup joué. Continue !";
 
         selectedFrom = null;
         clearSelection();
@@ -289,9 +647,14 @@
     }
 
     function checkWin() {
-      // victoire si tous les disques sont sur la 3e tour
       if (towers[2].length === numDisks) {
-        messageDiv.textContent = "Bravo ! Tu as gagné en " + moveCount + " coups.";
+        const minMoves = computeMinMoves(numDisks);
+        if (moveCount === minMoves) {
+          messageDiv.textContent = "🔥 Parfait ! Tu as réussi en " + moveCount + " coups, le minimum possible !";
+        } else {
+          messageDiv.textContent = "Bravo ! Tu as terminé en " + moveCount +
+            " coups (minimum possible : " + minMoves + ").";
+        }
       }
     }
 
