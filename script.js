@@ -1,3 +1,4 @@
+// Sélection des éléments DOM
 const startBtn = document.getElementById('startBtn');
 const resetBtn = document.getElementById('resetBtn');
 const demoBtn = document.getElementById('demoBtn');
@@ -28,21 +29,38 @@ let demoIndex = 0;
 let score = 0;
 let bestScore = 0;
 
+/**
+ * Calcule le nombre minimal de coups nécessaires pour résoudre les Tours de Hanoï.
+ * @param {number} n - Nombre de disques.
+ * @returns {number} Le nombre minimal de coups.
+ */
 function computeMinMoves(n) {
   return Math.pow(2, n) - 1;
 }
 
+/**
+ * Met à jour l'affichage du score et du meilleur score.
+ */
 function updateScoreboard() {
   scoreSpan.textContent = score;
   bestScoreSpan.textContent = bestScore;
 }
 
+/**
+ * Réinitialise l'état de la démonstration automatique.
+ */
 function resetDemoState() {
   demoRunning = false;
   demoMoves = [];
   demoIndex = 0;
 }
 
+/**
+ * Démarre une nouvelle partie :
+ * - Réinitialisation des variables
+ * - Placement initial des disques
+ * - Mise à jour de l'affichage
+ */
 function startGame() {
   resetDemoState();
   isAnimating = false;
@@ -73,6 +91,9 @@ function startGame() {
   renderTowers();
 }
 
+/**
+ * Affiche les tours et les disques dans le DOM.
+ */
 function renderTowers() {
   towerElements.forEach((towerEl, index) => {
     const disksContainer = towerEl.querySelector('.disks');
@@ -95,13 +116,20 @@ function renderTowers() {
   });
 }
 
+/**
+ * Retire toute sélection visuelle sur les tours.
+ */
 function clearSelection() {
   towerElements.forEach(t => t.classList.remove('selected'));
 }
 
-// Animation d’un coup (manuel ou démo)
-// → le disque part de sa position actuelle et va se positionner
-//   tout en haut de la tour d’arrivée, puis on ré-affiche la pile.
+/**
+ * Effectue un déplacement animé d'un disque d'une tour vers une autre.
+ * @param {number} from - Index de la tour source.
+ * @param {number} to - Index de la tour destination.
+ * @param {boolean} isDemoMove - Indique si le coup provient de la démo automatique.
+ * @param {Function} [callback] - Fonction appelée après la fin de l’animation.
+ */
 function performMove(from, to, isDemoMove, callback) {
   const fromTower = towers[from];
   const toTower = towers[to];
@@ -118,7 +146,6 @@ function performMove(from, to, isDemoMove, callback) {
   const diskDom = fromDisksContainer.lastElementChild;
 
   if (!diskDom) {
-    // fallback sans animation
     fromTower.pop();
     toTower.push(diskToMove);
     moveCount++;
@@ -129,41 +156,32 @@ function performMove(from, to, isDemoMove, callback) {
     return;
   }
 
-  // --- Logique du jeu ---
   fromTower.pop();
   toTower.push(diskToMove);
 
   moveCount++;
   moveCountSpan.textContent = moveCount;
 
-  if (isDemoMove) {
-    messageDiv.textContent = "Démo automatique en cours...";
-  } else {
-    messageDiv.textContent = "Coup joué. Continue !";
-  }
-
-  // --- Animation : vers le haut de la tour d’arrivée ---
+  messageDiv.textContent = isDemoMove
+    ? "Démo automatique en cours..."
+    : "Coup joué. Continue !";
 
   const fromRect = diskDom.getBoundingClientRect();
   const towerRect = toTowerEl.getBoundingClientRect();
 
-  // Taille réelle du disque (px) pour éviter les déformations
   const computed = window.getComputedStyle(diskDom);
   const pixelWidth = computed.width;
   const pixelHeight = computed.height;
 
-  // Position de départ (centre du disque actuel)
   const startLeft = fromRect.left;
   const startTop = fromRect.top;
 
-  // Position d’arrivée : tout en haut de la tour d’arrivée
   const targetLeft = towerRect.left + (towerRect.width - fromRect.width) / 2;
-  const targetTop = towerRect.top + 10; // 10px sous le haut de la tour
+  const targetTop = towerRect.top + 10;
 
   const dx = targetLeft - startLeft;
   const dy = targetTop - startTop;
 
-  // Clone animé
   const moving = diskDom.cloneNode(true);
   moving.classList.add('moving-disk');
   moving.style.left = startLeft + 'px';
@@ -177,12 +195,10 @@ function performMove(from, to, isDemoMove, callback) {
   diskDom.style.visibility = 'hidden';
   isAnimating = true;
 
-  // Lancer l’animation
   requestAnimationFrame(() => {
     moving.style.transform = `translate(${dx}px, ${dy}px)`;
   });
 
-  // Quand l’anim est finie : on enlève le clone et on ré-affiche les tours
   setTimeout(() => {
     moving.remove();
     isAnimating = false;
@@ -191,7 +207,13 @@ function performMove(from, to, isDemoMove, callback) {
     if (callback) callback();
   }, animationDuration + 40);
 }
-
+/**
+ * Gestion du clic sur une tour :
+ * - Sélection de la tour de départ
+ * - Validation de la tour d'arrivée
+ * - Vérification de la légalité du mouvement
+ * @param {MouseEvent} event - L'événement de clic.
+ */
 function onTowerClick(event) {
   if (demoRunning) {
     messageDiv.textContent =
@@ -207,6 +229,7 @@ function onTowerClick(event) {
   const index = parseInt(towerEl.dataset.index, 10);
   const tower = towers[index];
 
+  // Sélection de la tour de départ
   if (selectedFrom === null) {
     if (tower.length === 0) {
       messageDiv.textContent = "Cette tour est vide, choisis une autre tour comme départ.";
@@ -216,56 +239,67 @@ function onTowerClick(event) {
     clearSelection();
     towerEl.classList.add('selected');
     messageDiv.textContent = "Choisis maintenant la tour d’arrivée.";
-  } else {
-    const from = selectedFrom;
-    const to = index;
+    return;
+  }
 
-    if (from === to) {
-      selectedFrom = null;
-      clearSelection();
-      messageDiv.textContent = "Sélection annulée.";
-      return;
-    }
+  // Sélection de la tour d'arrivée
+  const from = selectedFrom;
+  const to = index;
 
-    const fromTower = towers[from];
-    const toTower = towers[to];
-
-    if (fromTower.length === 0) {
-      messageDiv.textContent = "La tour de départ est vide.";
-      selectedFrom = null;
-      clearSelection();
-      return;
-    }
-
-    const diskToMove = fromTower[fromTower.length - 1];
-    const topDest = toTower[toTower.length - 1];
-
-    if (topDest !== undefined && topDest < diskToMove) {
-      messageDiv.textContent =
-        "Coup interdit : tu ne peux pas poser un grand disque sur un plus petit.";
-      selectedFrom = null;
-      clearSelection();
-      return;
-    }
-
+  if (from === to) {
     selectedFrom = null;
     clearSelection();
-    performMove(from, to, false);
+    messageDiv.textContent = "Sélection annulée.";
+    return;
   }
+
+  const fromTower = towers[from];
+  const toTower = towers[to];
+
+  if (fromTower.length === 0) {
+    messageDiv.textContent = "La tour de départ est vide.";
+    selectedFrom = null;
+    clearSelection();
+    return;
+  }
+
+  const diskToMove = fromTower[fromTower.length - 1];
+  const topDest = toTower[toTower.length - 1];
+
+  if (topDest !== undefined && topDest < diskToMove) {
+    messageDiv.textContent =
+      "Coup interdit : tu ne peux pas poser un grand disque sur un plus petit.";
+    selectedFrom = null;
+    clearSelection();
+    return;
+  }
+
+  selectedFrom = null;
+  clearSelection();
+  performMove(from, to, false);
 }
 
+/**
+ * Vérifie si le joueur ou la démo a gagné.
+ * - Si la colonne 3 contient tous les disques, la partie est terminée
+ * - Gère l'affichage des messages de fin
+ * - Calcule le score
+ * @param {boolean} isDemoMove - Indique si le coup provient de la démo automatique.
+ */
 function checkWin(isDemoMove) {
   if (towers[2].length !== numDisks) return;
 
   const minMoves = computeMinMoves(numDisks);
   const moves = moveCount;
 
+  // Cas démo
   if (isDemoMove) {
     demoRunning = false;
     messageDiv.textContent = "Démo terminée en " + moves + " coups (solution optimale).";
     return;
   }
 
+  // Fin normale
   if (moves === minMoves) {
     messageDiv.textContent =
       "🌟 Parfait ! Tu as réussi en " + moves + " coups, le minimum possible !";
@@ -276,9 +310,8 @@ function checkWin(isDemoMove) {
 
   const rawScore = Math.round(1000 * (minMoves / moves));
   score = Math.max(10, rawScore);
-  if (score > bestScore) {
-    bestScore = score;
-  }
+  if (score > bestScore) bestScore = score;
+
   updateScoreboard();
 
   let alertMsg;
@@ -288,15 +321,20 @@ function checkWin(isDemoMove) {
   } else {
     alertMsg =
       `Bravo ! Tu as terminé en ${moves} coups (minimum possible : ${minMoves}).\nScore : ${score}`;
-    if (score === bestScore) {
-      alertMsg += `\nNouveau meilleur score !`;
-    }
+    if (score === bestScore) alertMsg += `\nNouveau meilleur score !`;
   }
+
   alert(alertMsg);
 }
 
-// === Démo automatique ===
-
+/**
+ * Génère la liste des mouvements optimaux pour résoudre les Tours de Hanoï.
+ * Algorithme récursif standard.
+ * @param {number} n - Nombre de disques.
+ * @param {number} from - Tour source.
+ * @param {number} to - Tour destination.
+ * @param {number} aux - Tour auxiliaire.
+ */
 function generateHanoiMoves(n, from, to, aux) {
   if (n === 0) return;
   generateHanoiMoves(n - 1, from, aux, to);
@@ -304,12 +342,14 @@ function generateHanoiMoves(n, from, to, aux) {
   generateHanoiMoves(n - 1, aux, to, from);
 }
 
+/**
+ * Joue le prochain coup de la démo automatique.
+ */
 function playNextDemoMove() {
   if (!demoRunning) return;
 
   if (demoIndex >= demoMoves.length) {
-    // la dernière animation appellera checkWin(true)
-    return;
+    return; // la dernière animation déclenchera checkWin(true)
   }
 
   const [from, to] = demoMoves[demoIndex];
@@ -322,6 +362,11 @@ function playNextDemoMove() {
   });
 }
 
+/**
+ * Démarre la démonstration automatique :
+ * - génère la solution optimale
+ * - joue les coups l'un après l'autre
+ */
 function startDemo() {
   startGame();
 
@@ -339,6 +384,9 @@ function startDemo() {
 
 let isDark = false;
 
+/**
+ * Applique le thème clair ou sombre en fonction de la variable isDark.
+ */
 function applyTheme() {
   if (isDark) {
     document.body.classList.add('dark');
